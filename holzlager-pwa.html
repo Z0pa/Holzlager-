@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Holzlager">
+<title>Holzlager · Hof Rhede</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #000;
+  --bg2:     #0e0e0e;
+  --bg3:     #1a1a1a;
+  --border:  #2c2c2c;
+  --border2: #404040;
+  --text:    #f2f2f2;
+  --text2:   #888;
+  --text3:   #4a4a4a;
+  --accent:  #f5c842;
+  --y25: #7eb8f7;
+  --y26: #6dd9a0;
+  --y27: #f5c842;
+  --y28: #f07a5a;
+  --zl1: #7ed99a;
+  --zl2: #5ecfb0;
+  --zl3: #3dbfcf;
+  --zl4: #3a9fd4;
+  --zl5: #9b6fd4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; }
+
+/* ── HEADER ── */
+#header {
+  position: fixed; top: 0; left: 0; right: 0; height: 54px;
+  background: #000; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; z-index: 50;
+}
+#header h1 { font-size: 1.15rem; font-weight: 900; }
+.header-sub { font-size: 0.55rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1px; font-weight: 700; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+#header-date { font-size: 0.62rem; color: var(--text3); font-weight: 700; }
+
+/* Page dots */
+#page-dots { display: flex; gap: 6px; align-items: center; }
+.pdot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); transition: background 0.2s; }
+.pdot.active { background: var(--accent); }
+
+/* Google sync button */
+#sync-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.75rem; color: var(--text3);
+  transition: border-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+#sync-btn.synced  { border-color: var(--zl1); color: var(--zl1); }
+#sync-btn.syncing { border-color: var(--accent); color: var(--accent); animation: spin 1s linear infinite; }
+#sync-btn.error   { border-color: #f07a5a; color: #f07a5a; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SWIPE CONTAINER ── */
+#swipe-wrap {
+  position: fixed; top: 54px; bottom: 0; left: 0;
+  width: 300vw; display: flex;
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+}
+#swipe-wrap.page-1 { transform: translateX(0); }
+#swipe-wrap.page-2 { transform: translateX(-100vw); }
+#swipe-wrap.page-3 { transform: translateX(-200vw); }
+
+.page {
+  width: 100vw; height: 100%; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; flex-shrink: 0;
+  padding: 14px 14px 60px;
+}
+
+/* ── PAGE 1: UNTERSTAND-ÜBERSICHT ── */
+#year-legend { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.yl-item { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; font-weight: 800; }
+.yl-pip { width: 10px; height: 10px; border-radius: 3px; }
+
+#map-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 12px 8px; margin-bottom: 12px;
+}
+.map-dir { font-size: 0.55rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+.map-dir.bot { margin-top: 6px; margin-bottom: 0; }
+#map-svg { width: 100%; display: block; }
+
+.us-shape { cursor: pointer; }
+.us-bg { transition: stroke 0.18s, stroke-width 0.18s; }
+.us-name { font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 12px; fill: #f2f2f2; pointer-events: none; }
+.us-sub  { font-family: 'Nunito',sans-serif; font-weight: 600; font-size: 7px; fill: #777; pointer-events: none; }
+.ibc-sq  { fill: none; stroke-width: 1; opacity: 0.55; pointer-events: none; }
+.sdot    { pointer-events: none; }
+
+#tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.tile { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; }
+.tile-num { font-size: 1.65rem; font-weight: 900; color: var(--accent); line-height: 1; }
+.tile-label { font-size: 0.58rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+#io-bar {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; margin-bottom: 12px;
+  display: flex; gap: 8px; align-items: center;
+}
+.io-lbl { font-size: 0.58rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; flex: 1; }
+.btn-io {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
+  font-family: 'Nunito',sans-serif; font-weight: 800; font-size: 0.62rem;
+  padding: 6px 12px; border-radius: 7px; cursor: pointer; text-transform: uppercase;
+}
+.btn-io:active { border-color: var(--accent); color: var(--accent); }
+#file-input { display: none; }
+
+#tl-sec { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 13px; margin-bottom: 12px; }
+.sec-head { font-size: 0.65rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.tl-yr { display: flex; gap: 10px; margin-bottom: 7px; align-items: flex-start; }
+.tl-yl { font-size: 1rem; font-weight: 900; min-width: 38px; padding-top: 2px; }
+.tl-evs { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.tl-ev { font-size: 0.65rem; font-weight: 700; padding: 4px 9px; border-left: 2px solid; border-radius: 0 4px 4px 0; }
+.ev-fell  { border-color:#f5c842; background:#1a1500; color:#f5c842; }
+.ev-stack { border-color:#7eb8f7; background:#0d1420; color:#7eb8f7; }
+.ev-ready { border-color:#6dd9a0; background:#0d1a14; color:#6dd9a0; }
+.ev-heat  { border-color:#f07a5a; background:#1a0e0a; color:#f07a5a; }
+.tl-mo { font-weight: 900; margin-right: 5px; }
+
+/* ── DRAWER ── */
+#dw-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0); z-index: 80;
+  pointer-events: none; transition: background 0.28s;
+}
+#dw-overlay.open { background: rgba(0,0,0,0.72); pointer-events: all; }
+#drawer {
+  position: fixed; bottom: 0; left: 0; right: 0; max-height: 88vh;
+  background: #000; border-top: 1px solid var(--border2);
+  border-radius: 18px 18px 0 0; z-index: 90;
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  display: flex; flex-direction: column;
+}
+#drawer.open { transform: translateY(0); }
+#dw-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+#dw-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px 40px; flex: 1; }
+.dw-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 11px; border-bottom: 1px solid var(--border); }
+.dw-title { font-size: 1.25rem; font-weight: 900; line-height: 1.1; }
+.dw-sub { font-size: 0.58rem; font-weight: 700; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.x-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+.sek-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.sek-tab { flex: 1; padding: 7px 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; font-family: 'Nunito',sans-serif; font-size: 0.6rem; font-weight: 800; color: var(--text2); cursor: pointer; text-align: center; text-transform: uppercase; }
+.sek-tab.on { background: #111500; border-color: var(--accent); color: var(--accent); }
+.dw-blk { margin-bottom: 9px; }
+.dw-lbl { font-size: 0.56rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+.dw-val { font-size: 0.88rem; font-weight: 700; color: var(--text); cursor: pointer; padding: 8px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; }
+.dw-val:active { border-color: var(--accent); }
+.eic { font-size: 0.65rem; color: var(--text3); flex-shrink: 0; }
+.m-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-top: 4px; }
+.m-cell { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 4px; text-align: center; cursor: pointer; }
+.m-val { font-size: 1.05rem; font-weight: 900; line-height: 1; }
+.m-dt  { font-size: 0.48rem; font-weight: 700; color: var(--text3); margin-top: 3px; display: none; }
+.m-cell.sd .m-dt { display: block; }
+.m-cell.emp { opacity: 0.22; cursor: default; }
+.m-cell.emp .m-val { font-size: 0.7rem; color: var(--text3); }
+.add-m { width: 100%; background: transparent; border: 1px dashed var(--border2); color: var(--text2); font-family: 'Nunito',sans-serif; font-weight: 800; font-size: 0.63rem; padding: 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 7px; }
+.add-m:active { border-color: var(--accent); color: var(--accent); }
+
+/* ── EDIT OVERLAY ── */
+#edit-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 120; display: none; align-items: center; justify-content: center; padding: 22px; }
+#edit-ov.open { display: flex; }
+.ep { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 18px; width: 100%; max-width: 360px; }
+.ep h3 { font-size: 0.95rem; font-weight: 900; margin-bottom: 12px; }
+.ep label { display: block; font-size: 0.58rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; margin-top: 9px; }
+.ep input, .ep textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); font-family: 'Nunito',sans-serif; font-weight: 700; font-size: 0.88rem; padding: 9px 10px; border-radius: 8px; outline: none; }
+.ep input:focus, .ep textarea:focus { border-color: var(--accent); }
+.ep textarea { min-height: 66px; resize: vertical; }
+.ea { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.bs { background: var(--accent); color: #000; border: none; font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 0.7rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+.bc { background: transparent; color: var(--text2); border: 1px solid var(--border); font-family: 'Nunito',sans-serif; font-weight: 700; font-size: 0.7rem; padding: 8px 14px; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+
+/* ── PAGE 2: ZWISCHENPLATZ ── */
+#zl-layout { display: flex; gap: 10px; height: calc(100vh - 54px - 28px); min-height: 500px; }
+#zl-left-wrap { display: flex; flex-direction: column; width: 44px; flex-shrink: 0; }
+#left-col-inner { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.ref-shape { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.ref-shape span { font-size: 0.52rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 0.3px; writing-mode: vertical-rl; }
+#ref-u4a { flex: 1; }
+#ref-u2  { height: 52px; flex-shrink: 0; }
+#parkplatz-label { font-size: 0.48rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; padding-top: 5px; border-top: 1px solid var(--border2); margin-top: 6px; }
+#zl-right { flex: 1; display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.zone-header { padding: 7px 12px 5px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.zone-title { font-size: 0.62rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); }
+.zone-status { font-size: 0.72rem; font-weight: 900; }
+.zone-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 10px 12px 12px; position: relative; overflow: hidden; }
+.zone-fill { position: absolute; bottom: 0; left: 0; right: 0; height: 0%; transition: height 0.4s cubic-bezier(0.34,1.2,0.64,1), background 0.4s; opacity: 0.18; }
+.bars-row { display: flex; align-items: flex-end; gap: 5px; height: 54px; position: relative; z-index: 2; margin-bottom: 10px; }
+.bar { flex: 1; border-radius: 3px 3px 0 0; border: 1.5px solid var(--border2); background: var(--bg3); cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.1s; }
+.bar:active { transform: scaleY(0.92); }
+.bar:nth-child(1) { height: 15%; }
+.bar:nth-child(2) { height: 35%; }
+.bar:nth-child(3) { height: 58%; }
+.bar:nth-child(4) { height: 80%; }
+.bar:nth-child(5) { height: 100%; }
+.controls-row { display: flex; align-items: center; gap: 8px; position: relative; z-index: 2; }
+.ctrl-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--border2); color: var(--text); font-size: 1.1rem; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; user-select: none; }
+.ctrl-btn:active { background: var(--border2); }
+.ctrl-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+.ctrl-track-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
+.zone-divider { height: 1px; background: var(--border2); flex-shrink: 0; }
+
+/* ── PAGE 3: TODO ── */
+.todo-add-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.todo-input { flex: 1; background: var(--bg2); border: 1px solid var(--border2); color: var(--text); font-family: 'Nunito',sans-serif; font-weight: 700; font-size: 0.88rem; padding: 10px 12px; border-radius: 10px; outline: none; }
+.todo-input:focus { border-color: var(--accent); }
+.prio-toggle { display: flex; border-radius: 10px; overflow: hidden; border: 1px solid var(--border2); flex-shrink: 0; }
+.prio-btn { width: 36px; height: 42px; background: var(--bg2); border: none; font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 0.8rem; color: var(--text3); cursor: pointer; transition: background 0.15s, color 0.15s; }
+.prio-btn.sel-A { background: #e05c5c22; color: #e07a7a; }
+.prio-btn.sel-B { background: #f5c84222; color: #f5c842; }
+.prio-btn.sel-C { background: #7eb8f722; color: #7eb8f7; }
+.add-btn { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; background: var(--accent); border: none; color: #000; font-size: 1.3rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.add-btn:active { opacity: 0.8; }
+.task-item { display: flex; align-items: flex-start; gap: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; margin-bottom: 8px; border-left-width: 3px; transition: opacity 0.2s; }
+.task-item.prio-A { border-left-color: #e07a7a; }
+.task-item.prio-B { border-left-color: #f5c842; }
+.task-item.prio-C { border-left-color: #7eb8f7; }
+.task-item.done { opacity: 0.35; }
+.task-item.done .task-text { text-decoration: line-through; }
+.task-check { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--border2); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin-top: 1px; }
+.task-item.done .task-check { background: var(--border2); }
+.task-item.done .task-check::after { content: '✓'; color: var(--text3); }
+.task-body { flex: 1; min-width: 0; }
+.task-prio-badge { font-size: 0.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+.task-item.prio-A .task-prio-badge { color: #e07a7a; }
+.task-item.prio-B .task-prio-badge { color: #f5c842; }
+.task-item.prio-C .task-prio-badge { color: #7eb8f7; }
+.task-text { font-size: 0.88rem; font-weight: 700; line-height: 1.35; word-break: break-word; }
+.task-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.task-del, .task-edit { background: none; border: none; color: var(--text3); font-size: 0.9rem; cursor: pointer; padding: 0 2px; line-height: 1; margin-top: 1px; }
+.task-del:active { color: #e07a7a; }
+.task-edit:active { color: var(--accent); }
+.todo-section-label { font-size: 0.55rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin: 14px 0 6px; }
+.todo-empty { text-align: center; color: var(--text3); font-size: 0.78rem; font-weight: 700; padding: 32px 0; }
+
+/* ── GOOGLE AUTH OVERLAY ── */
+#auth-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; display: none; align-items: center; justify-content: center; padding: 22px; }
+#auth-ov.open { display: flex; }
+.auth-box { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 24px; width: 100%; max-width: 340px; text-align: center; }
+.auth-box h2 { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
+.auth-box p { font-size: 0.75rem; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+.auth-google-btn { width: 100%; background: #fff; color: #222; border: none; border-radius: 10px; padding: 12px; font-family: 'Nunito',sans-serif; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.auth-google-btn:active { opacity: 0.85; }
+.auth-skip { background: none; border: none; color: var(--text3); font-family: 'Nunito',sans-serif; font-size: 0.7rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
+
+/* Toast */
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 16px; font-size: 0.72rem; font-weight: 800; color: var(--text); z-index: 300; transition: transform 0.3s; white-space: nowrap; }
+#toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div class="header-sub">Hof Rhede</div>
+    <h1 id="page-title">Holzlager</h1>
+  </div>
+  <div class="header-right">
+    <div id="page-dots">
+      <div class="pdot active" id="dot-p1"></div>
+      <div class="pdot" id="dot-p2"></div>
+      <div class="pdot" id="dot-p3"></div>
+    </div>
+    <div id="sync-btn" onclick="syncAction()" title="Google Drive Sync">↻</div>
+    <div id="header-date"></div>
+  </div>
+</div>
+
+<div id="swipe-wrap" class="page-1">
+
+  <!-- ══ PAGE 1: UNTERSTAND-ÜBERSICHT ══ -->
+  <div class="page" id="page1">
+
+    <div id="year-legend">
+      <div class="yl-item"><div class="yl-pip" style="background:var(--y25)"></div><span style="color:var(--y25)">2025/29</span></div>
+      <div class="yl-item"><div class="yl-pip" style="background:var(--y26)"></div><span style="color:var(--y26)">2026/30</span></div>
+      <div class="yl-item"><div class="yl-pip" style="background:var(--y27)"></div><span style="color:var(--y27)">2027 ⬡</span></div>
+      <div class="yl-item"><div class="yl-pip" style="background:var(--y28)"></div><span style="color:var(--y28)">2028/32</span></div>
+    </div>
+
+    <div id="map-wrap">
+      <div class="map-dir">↑ Wald</div>
+      <!--
+        RECHTE HAUPTFLUCHT = 184
+        U3 : x=12,  w=172 → rechts=184
+        U4a: x=138, w=46  → rechts=184
+        U4b: x=12,  w=126 → rechts=138
+        U2 : x=74,  w=110 → rechts=184
+        U1 : x=12,  w=80
+        U5 : x=-22, w=34  → rechts=12 (links neben U3)
+        viewBox: -26 0 222 258
+      -->
+      <svg id="map-svg" viewBox="-26 0 222 258" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- U5: Planung, links neben U3 -->
+        <g id="svg-u5" style="opacity:0.75">
+          <rect x="-22" y="58" width="34" height="79" rx="3"
+                fill="#0a0a0a" stroke="#4a4a4a" stroke-width="1.2" stroke-dasharray="5,3"/>
+          <text font-family="Nunito,sans-serif" font-weight="900" font-size="9" fill="#4a4a4a" x="-5" y="93" text-anchor="middle">U5</text>
+          <text font-family="Nunito,sans-serif" font-weight="700" font-size="5.5" fill="#3a3a3a" x="-5" y="104" text-anchor="middle">Planung</text>
+        </g>
+
+        <!-- U3 -->
+        <g class="us-shape" onclick="openDrawer('u3')" id="svg-u3">
+          <rect class="us-bg" id="bg-u3" x="12" y="8" width="172" height="42" rx="3" fill="#111" stroke="#363636" stroke-width="1.2"/>
+          <rect class="ibc-sq" x="16"  y="12" width="25" height="34" rx="2" stroke="#f5c842"/>
+          <rect class="ibc-sq" x="151" y="12" width="25" height="34" rx="2" stroke="#f5c842"/>
+          <text class="us-name" x="98" y="27" text-anchor="middle">U3</text>
+          <text class="us-sub"  x="98" y="39" text-anchor="middle">Roteiche · Sep 2025</text>
+          <circle class="sdot" id="dot-u3" cx="18" cy="14" r="5" fill="#3a3a3a"/>
+        </g>
+
+        <!-- U4a -->
+        <g class="us-shape" onclick="openDrawer('u4')" id="svg-u4a">
+          <rect class="us-bg" id="bg-u4a" x="138" y="58" width="46" height="124" rx="3" fill="#0d0d0d" stroke="#363636" stroke-width="1.2"/>
+          <rect class="ibc-sq" x="142" y="63"  width="38" height="24" rx="2" stroke="#6dd9a0"/>
+          <rect class="ibc-sq" x="142" y="154" width="38" height="24" rx="2" stroke="#6dd9a0"/>
+          <text class="us-name" x="161" y="113" text-anchor="middle" font-size="11">U4a</text>
+          <text class="us-sub"  x="161" y="124" text-anchor="middle">Roteiche</text>
+          <text class="us-sub"  x="161" y="134" text-anchor="middle">2 IBC</text>
+          <circle class="sdot" id="dot-u4a" cx="180" cy="64" r="4.5" fill="#3a3a3a"/>
+        </g>
+
+        <!-- U4b -->
+        <g class="us-shape" onclick="openDrawer('u4')" id="svg-u4b">
+          <rect class="us-bg" id="bg-u4b" x="12" y="152" width="126" height="30" rx="3" fill="#0d0d0d" stroke="#363636" stroke-width="1.2"/>
+          <rect class="ibc-sq" x="16" y="156" width="24" height="22" rx="2" stroke="#f07a5a"/>
+          <text class="us-name" x="75" y="165" text-anchor="middle" font-size="11">U4b</text>
+          <text class="us-sub"  x="75" y="176" text-anchor="middle">Kiefer + Roteiche</text>
+          <circle class="sdot" id="dot-u4b" cx="130" cy="157" r="4.5" fill="#3a3a3a"/>
+        </g>
+
+        <!-- dashes -->
+        <line x1="98" y1="50" x2="98" y2="58" stroke="#282828" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <line x1="60" y1="182" x2="60" y2="200" stroke="#282828" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+        <!-- U1 -->
+        <g class="us-shape" onclick="openDrawer('u1')" id="svg-u1">
+          <rect class="us-bg" id="bg-u1" x="12" y="200" width="80" height="36" rx="3" fill="#111" stroke="#363636" stroke-width="1.2"/>
+          <text class="us-name" x="52" y="215" text-anchor="middle">U1</text>
+          <text class="us-sub"  x="52" y="227" text-anchor="middle">Roteiche · Apr 2025</text>
+          <circle class="sdot" id="dot-u1" cx="18" cy="206" r="4.5" fill="#3a3a3a"/>
+        </g>
+
+        <!-- U2 -->
+        <g class="us-shape" onclick="openDrawer('u2')" id="svg-u2">
+          <rect class="us-bg" id="bg-u2" x="104" y="200" width="80" height="36" rx="3" fill="#111" stroke="#363636" stroke-width="1.2"/>
+          <text class="us-name" x="144" y="215" text-anchor="middle">U2</text>
+          <text class="us-sub"  x="144" y="227" text-anchor="middle">Roteiche · Mai 2025</text>
+          <circle class="sdot" id="dot-u2" cx="180" cy="206" r="4.5" fill="#3a3a3a"/>
+        </g>
+
+        <!-- Parkplatz -->
+        <line x1="-18" y1="242" x2="190" y2="242" stroke="#2a2a2a" stroke-width="1"/>
+        <text font-family="Nunito,sans-serif" font-weight="800" font-size="6.5" fill="#3a3a3a" x="-18" y="251">PARKPLATZ</text>
+
+      </svg>
+      <div class="map-dir bot">↓ Parkplatz · Straße</div>
+    </div>
+
+    <div id="tiles">
+      <div class="tile">
+        <div class="tile-num">~63</div>
+        <div class="tile-label">Raummeter</div>
+      </div>
+      <div class="tile">
+        <div class="tile-num" id="tile-m">0</div>
+        <div class="tile-label">Messungen</div>
+      </div>
+      <div class="tile">
+        <div class="tile-num" style="color:var(--y27)">2027</div>
+        <div class="tile-label">Heizung ⬡</div>
+      </div>
+      <div class="tile">
+        <div class="tile-num" id="tile-next" style="font-size:1rem">—</div>
+        <div class="tile-label">Nächste Messung</div>
+      </div>
+    </div>
+
+    <div id="io-bar">
+      <div class="io-lbl">Datensicherung</div>
+      <button class="btn-io" onclick="exportJSON()">Export</button>
+      <button class="btn-io" onclick="document.getElementById('file-input').click()">Import</button>
+      <input type="file" id="file-input" accept=".json" onchange="importJSON(event)">
+    </div>
+
+    <div id="tl-sec">
+      <div class="sec-head">Zeitlinie</div>
+      <div id="tl-content"></div>
+    </div>
+
+  </div><!-- /page1 -->
+
+  <!-- ══ PAGE 2: ZWISCHENPLATZ ══ -->
+  <div class="page" id="page2" style="padding:14px 14px 14px;">
+    <div id="zl-layout">
+
+      <div id="zl-left-wrap">
+        <div id="left-col-inner">
+          <div class="ref-shape" id="ref-u4a"><span>U4a</span></div>
+          <div class="ref-shape" id="ref-u2"><span>U2</span></div>
+        </div>
+        <div id="parkplatz-label">Parkplatz</div>
+      </div>
+
+      <div id="zl-right">
+        <!-- Zone A: Gespalten -->
+        <div class="zone-header">
+          <div class="zone-title">✦ Gespalten</div>
+          <div class="zone-status" id="status-a">—</div>
+        </div>
+        <div class="zone-body">
+          <div class="zone-fill" id="fill-a"></div>
+          <div class="bars-row" id="bars-a">
+            <div class="bar" onclick="setZone('a',1)"></div>
+            <div class="bar" onclick="setZone('a',2)"></div>
+            <div class="bar" onclick="setZone('a',3)"></div>
+            <div class="bar" onclick="setZone('a',4)"></div>
+            <div class="bar" onclick="setZone('a',5)"></div>
+          </div>
+          <div class="controls-row">
+            <div class="ctrl-btn" onclick="adjustZone('a',-1)">−</div>
+            <div class="ctrl-track"><div class="ctrl-track-fill" id="track-a"></div></div>
+            <div class="ctrl-btn" onclick="adjustZone('a',+1)">+</div>
+          </div>
+        </div>
+
+        <div class="zone-divider"></div>
+
+        <!-- Zone B: Rund -->
+        <div class="zone-header">
+          <div class="zone-title">◉ Rund / ungespalten</div>
+          <div class="zone-status" id="status-b">—</div>
+        </div>
+        <div class="zone-body">
+          <div class="zone-fill" id="fill-b"></div>
+          <div class="bars-row" id="bars-b">
+            <div class="bar" onclick="setZone('b',1)"></div>
+            <div class="bar" onclick="setZone('b',2)"></div>
+            <div class="bar" onclick="setZone('b',3)"></div>
+            <div class="bar" onclick="setZone('b',4)"></div>
+            <div class="bar" onclick="setZone('b',5)"></div>
+          </div>
+          <div class="controls-row">
+            <div class="ctrl-btn" onclick="adjustZone('b',-1)">−</div>
+            <div class="ctrl-track"><div class="ctrl-track-fill" id="track-b"></div></div>
+            <div class="ctrl-btn" onclick="adjustZone('b',+1)">+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page2 -->
+
+  <!-- ══ PAGE 3: TODO ══ -->
+  <div class="page" id="page3">
+    <div class="todo-add-row">
+      <input class="todo-input" id="todo-input" type="text" placeholder="Neue Aufgabe…" onkeydown="if(event.key==='Enter')addTask()">
+      <div class="prio-toggle">
+        <button class="prio-btn sel-A" data-p="A" onclick="selectPrio('A')">A</button>
+        <button class="prio-btn" data-p="B" onclick="selectPrio('B')">B</button>
+        <button class="prio-btn" data-p="C" onclick="selectPrio('C')">C</button>
+      </div>
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+    <div id="todo-list"></div>
+  </div><!-- /page3 -->
+
+</div><!-- /swipe-wrap -->
+
+<!-- Drawer -->
+<div id="dw-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div id="dw-handle"></div>
+  <div id="dw-scroll"></div>
+</div>
+
+<!-- Edit overlay -->
+<div id="edit-ov">
+  <div class="ep" id="ep-content"></div>
+</div>
+
+<!-- Google Auth overlay -->
+<div id="auth-ov">
+  <div class="auth-box">
+    <h2>Google Drive Sync</h2>
+    <p>Deine Daten werden in einer Datei <strong>holzlager.json</strong> in deinem Google Drive gespeichert und beim Öffnen automatisch geladen.</p>
+    <button class="auth-google-btn" onclick="startGoogleAuth()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Mit Google anmelden
+    </button>
+    <button class="auth-skip" onclick="skipAuth()">Ohne Sync fortfahren</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// GOOGLE DRIVE CONFIG
+// ═══════════════════════════════════════════
+const CLIENT_ID = '49217356517-q17vmfo79s45l1em8bfa63l3ojbbg7i4.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+const FILE_NAME = 'holzlager.json';
+
+let gToken = null;
+let gFileId = null;
+let syncEnabled = false;
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const DEF = {
+  unterstände: {
+    u1: { name:'Unterstand 1', ort:'Parkplatz links', maße:'3700 × 1000 × 2000 mm', gebaut:'2024',
+      sektionen:{ haupt:{ name:'Hauptbefüllung', holzart:'Roteiche', gefaellt:'2025-01', eingelagert:'2025-04', ready:'2026-10', notizen:'', messungen:[] }}},
+    u2: { name:'Unterstand 2', ort:'Parkplatz rechts', maße:'3700 × 1000 × 2000 mm', gebaut:'2024',
+      sektionen:{ haupt:{ name:'Hauptbefüllung', holzart:'Roteiche', gefaellt:'2025-01', eingelagert:'2025-05', ready:'2026-11', notizen:'', messungen:[] }}},
+    u3: { name:'Unterstand 3', ort:'Waldrand, leicht gedreht', maße:'6000 × 1600 × 1600 mm', gebaut:'2025',
+      sektionen:{ haupt:{ name:'Hauptbefüllung', holzart:'Roteiche', gefaellt:'2025-01', eingelagert:'2025-09', ready:'2027-06', notizen:'', messungen:[] }}},
+    u4: { name:'Unterstand 4', ort:'L-Form, gemeinsames Dach', maße:'U4a: 6000×1500×1600 · U4b: 6000×1200×1400', gebaut:'2025',
+      sektionen:{
+        u4a:{ name:'Sektion 4a — Waldseite', holzart:'Roteiche', gefaellt:'2025-01', eingelagert:'2025-11', ready:'2027-11', notizen:'', messungen:[] },
+        u4b:{ name:'Sektion 4b — Parkplatzseite', holzart:'Kiefer + Roteiche', gefaellt:'2026-01', eingelagert:'2026-04', ready:'2028-04', notizen:'', messungen:[] }
+      }}
+  },
+  zwischenplatz: { a:{ level:0 }, b:{ level:0 } },
+  todos: []
+};
+
+let D = JSON.parse(JSON.stringify(DEF));
+let curUS = null, curSek = null, editCtx = null;
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function yc(y) {
+  const c = {2025:'#7eb8f7',2026:'#6dd9a0',2027:'#f5c842',2028:'#f07a5a',2029:'#7eb8f7',2030:'#6dd9a0',2031:'#f5c842',2032:'#f07a5a'};
+  return c[y]||'#888';
+}
+function fmtMY(s) {
+  if(!s) return '—';
+  const [y,m]=s.split('-');
+  const mn=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  return `${mn[parseInt(m)-1]} ${y}`;
+}
+function fmtMYhtml(s) {
+  if(!s) return '<span style="color:#4a4a4a">—</span>';
+  return `<span style="color:${yc(parseInt(s.split('-')[0]))}">${fmtMY(s)}</span>`;
+}
+function readyHtml(str) {
+  if(!str) return '<span style="color:#4a4a4a">—</span>';
+  const [y,m]=str.split('-').map(Number);
+  const now=new Date(), rd=new Date(y,m-1);
+  const mo=Math.round((rd-now)/(1000*60*60*24*30));
+  const col=yc(y), label=fmtMY(str);
+  if(mo<=0) return `<span style="color:${col};font-weight:900">${label} ✓ feuerreif</span>`;
+  return `<span style="color:${col};font-weight:900">${label}</span> <span style="color:#555;font-size:0.82em">(~${mo} Mon.)</span>`;
+}
+function toast(msg, dur=2200) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+function autoSave() {
+  if(syncEnabled && gToken) saveToGDrive();
+}
+
+// ═══════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════
+function mc(v) {
+  if(v===null) return '#3a3a3a';
+  if(v<=20) return '#6dd9a0';
+  if(v<=25) return '#f5c842';
+  return '#f07a5a';
+}
+function bestM(us) {
+  const all=Object.values(us.sektionen).flatMap(s=>s.messungen);
+  if(!all.length) return null;
+  return all.sort((a,b)=>b.datum.localeCompare(a.datum))[0].wert;
+}
+function latestM(sek) {
+  if(!sek.messungen.length) return null;
+  return sek.messungen.slice().sort((a,b)=>b.datum.localeCompare(a.datum))[0];
+}
+function updateMap() {
+  ['u1','u2','u3'].forEach(id=>{
+    const d=document.getElementById('dot-'+id);
+    if(d) d.setAttribute('fill', mc(bestM(D.unterstände[id])));
+  });
+  const u4=D.unterstände.u4;
+  const da=document.getElementById('dot-u4a'), db=document.getElementById('dot-u4b');
+  if(da){const lm=latestM(u4.sektionen.u4a); da.setAttribute('fill',mc(lm?lm.wert:null));}
+  if(db){const lm=latestM(u4.sektionen.u4b); db.setAttribute('fill',mc(lm?lm.wert:null));}
+  document.querySelectorAll('.us-bg').forEach(r=>{r.setAttribute('stroke','#363636');r.setAttribute('stroke-width','1.2');});
+  if(curUS){
+    const ids=curUS==='u4'?['u4a','u4b']:[curUS];
+    ids.forEach(id=>{const bg=document.getElementById('bg-'+id); if(bg){bg.setAttribute('stroke','#f5c842');bg.setAttribute('stroke-width','2');}});
+  }
+}
+
+// ═══════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════
+function openDrawer(usId) {
+  curUS=usId;
+  const us=D.unterstände[usId], sks=Object.keys(us.sektionen);
+  if(!curSek||!us.sektionen[curSek]) curSek=sks[0];
+  renderDW(us,usId);
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('dw-overlay').classList.add('open');
+  updateMap();
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('dw-overlay').classList.remove('open');
+  curUS=null; updateMap();
+}
+function renderDW(us, usId) {
+  const sks=Object.keys(us.sektionen);
+  const sek=us.sektionen[curSek]||us.sektionen[sks[0]];
+  const tabs=sks.length>1?`<div class="sek-tabs">${sks.map(k=>`
+    <div class="sek-tab ${k===curSek?'on':''}" onclick="swSek('${usId}','${k}')">
+      ${us.sektionen[k].name.replace('Sektion ','').split('—')[0].trim()}
+    </div>`).join('')}</div>`:'';
+  const last4=sek.messungen.slice().sort((a,b)=>b.datum.localeCompare(a.datum)).slice(0,4);
+  while(last4.length<4) last4.push(null);
+  const cells=last4.map(m=>{
+    if(!m) return `<div class="m-cell emp"><div class="m-val">—</div></div>`;
+    const col=mc(m.wert), ycol=yc(parseInt(m.datum.split('-')[0]));
+    return `<div class="m-cell" onclick="this.classList.toggle('sd')" style="border-color:${col}33;background:${col}11">
+      <div class="m-val" style="color:${col}">${m.wert}%</div>
+      <div class="m-dt" style="color:${ycol}">${fmtMY(m.datum)}</div>
+    </div>`;
+  }).join('');
+  const notizVal=sek.notizen||'';
+  document.getElementById('dw-scroll').innerHTML=`
+    <div class="dw-hdr">
+      <div><div class="dw-title">${us.name}</div><div class="dw-sub">${us.ort}</div></div>
+      <button class="x-btn" onclick="closeDrawer()">×</button>
+    </div>
+    ${tabs}
+    <div class="dw-blk"><div class="dw-lbl">Feuerreif ab</div>
+      <div class="dw-val" onclick="ef('${usId}','${curSek}','ready')"><span>${readyHtml(sek.ready)}</span><span class="eic">✎</span></div></div>
+    <div class="dw-blk"><div class="dw-lbl">Holzart</div>
+      <div class="dw-val" onclick="ef('${usId}','${curSek}','holzart')"><span>${sek.holzart||'—'}</span><span class="eic">✎</span></div></div>
+    <div class="dw-blk"><div class="dw-lbl">Eingelagert</div>
+      <div class="dw-val" onclick="ef('${usId}','${curSek}','eingelagert')"><span>${fmtMYhtml(sek.eingelagert)}</span><span class="eic">✎</span></div></div>
+    <div class="dw-blk"><div class="dw-lbl">Gefällt</div>
+      <div class="dw-val" onclick="ef('${usId}','${curSek}','gefaellt')"><span>${fmtMYhtml(sek.gefaellt)}</span><span class="eic">✎</span></div></div>
+    <div class="dw-blk"><div class="dw-lbl">Letzte 4 Messungen (tippen = Datum)</div>
+      <div class="m-grid">${cells}</div>
+      <button class="add-m" onclick="addM('${usId}','${curSek}')">+ Neue Messung</button></div>
+    <div class="dw-blk"><div class="dw-lbl">Notizen</div>
+      <div class="dw-val" style="align-items:flex-start;min-height:42px;font-size:0.78rem" onclick="ef('${usId}','${curSek}','notizen')">
+        <span style="white-space:pre-wrap">${notizVal||'—'}</span><span class="eic">✎</span>
+      </div></div>
+    <div style="font-size:0.56rem;color:#3a3a3a;font-weight:700;margin-top:5px">${us.maße}</div>`;
+}
+function swSek(usId,k){curSek=k;renderDW(D.unterstände[usId],usId);}
+
+// ═══════════════════════════════════════════
+// EDIT (mit Notizen-Fix: vorhandener Wert vorausgefüllt)
+// ═══════════════════════════════════════════
+const FL={holzart:'Holzart',eingelagert:'Eingelagert (YYYY-MM)',gefaellt:'Gefällt (YYYY-MM)',ready:'Feuerreif ab (YYYY-MM)',notizen:'Notizen'};
+
+function ef(usId,sk,field){
+  editCtx={usId,sk,field};
+  const val=D.unterstände[usId].sektionen[sk][field]||'';
+  const isTA=field==='notizen';
+  document.getElementById('ep-content').innerHTML=`
+    <h3>${FL[field]}</h3>
+    <label>${FL[field]}</label>
+    ${isTA?`<textarea id="ei">${val}</textarea>`:`<input type="text" id="ei" value="${val}">`}
+    <div class="ea">
+      <button class="bc" onclick="closeEdit()">Abbrechen</button>
+      <button class="bs" onclick="saveEdit()">Speichern</button>
+    </div>`;
+  document.getElementById('edit-ov').classList.add('open');
+  setTimeout(()=>document.getElementById('ei').focus(),80);
+}
+function saveEdit(){
+  const val=document.getElementById('ei').value.trim();
+  D.unterstände[editCtx.usId].sektionen[editCtx.sk][editCtx.field]=val;
+  closeEdit(); renderDW(D.unterstände[editCtx?.usId||curUS],curUS); updateMap(); updateTiles(); autoSave();
+}
+function closeEdit(){document.getElementById('edit-ov').classList.remove('open');editCtx=null;}
+
+function addM(usId,sk){
+  editCtx={usId,sk,field:'__m__'};
+  const today=new Date().toISOString().slice(0,7);
+  document.getElementById('ep-content').innerHTML=`
+    <h3>Messung eintragen</h3>
+    <label>Datum (YYYY-MM)</label><input type="month" id="ed" value="${today}">
+    <label>Holzfeuchte (%)</label><input type="number" id="ev" placeholder="z.B. 17" min="5" max="60">
+    <label>Notiz</label><textarea id="en" style="min-height:50px"></textarea>
+    <div class="ea">
+      <button class="bc" onclick="closeEdit()">Abbrechen</button>
+      <button class="bs" onclick="saveM()">Speichern</button>
+    </div>`;
+  document.getElementById('edit-ov').classList.add('open');
+}
+function saveM(){
+  const datum=document.getElementById('ed').value, wertStr=document.getElementById('ev').value, notiz=document.getElementById('en').value.trim();
+  if(!datum||!wertStr){alert('Bitte Datum und Wert angeben.');return;}
+  D.unterstände[editCtx.usId].sektionen[editCtx.sk].messungen.push({datum,wert:parseFloat(wertStr),notiz});
+  const uid=editCtx.usId; closeEdit(); renderDW(D.unterstände[uid],uid); updateMap(); updateTiles(); autoSave();
+}
+
+// ═══════════════════════════════════════════
+// TILES
+// ═══════════════════════════════════════════
+function updateTiles(){
+  let t=0;
+  Object.values(D.unterstände).forEach(us=>Object.values(us.sektionen).forEach(s=>t+=s.messungen.length));
+  document.getElementById('tile-m').textContent=t;
+  // Next ready
+  const dates=[];
+  Object.values(D.unterstände).forEach(us=>Object.values(us.sektionen).forEach(s=>{if(s.ready)dates.push(s.ready);}));
+  dates.sort();
+  const now=new Date().toISOString().slice(0,7);
+  const next=dates.find(d=>d>=now);
+  const el=document.getElementById('tile-next');
+  if(next){el.textContent=fmtMY(next);el.style.color=yc(parseInt(next.split('-')[0]));}
+  else{el.textContent='—';}
+}
+
+// ═══════════════════════════════════════════
+// IO
+// ═══════════════════════════════════════════
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=`holzlager_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  URL.revokeObjectURL(url);
+}
+function importJSON(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(!p.unterstände) throw new Error('Ungültiges Format');
+      D=p; updateMap(); updateTiles(); renderTL();
+      if(D.zwischenplatz){renderZone('a');renderZone('b');}
+      if(D.todos){tasks=D.todos;renderTasks();}
+      if(curUS) renderDW(D.unterstände[curUS],curUS);
+      toast('Daten geladen ✓');
+    }catch(err){alert('Fehler: '+err.message);}
+  };
+  r.readAsText(file); e.target.value='';
+}
+
+// ═══════════════════════════════════════════
+// TIMELINE
+// ═══════════════════════════════════════════
+const TL=[
+  {y:2025,m:'Jan',t:'Fällung: Roteiche für U1–U4a',c:'ev-fell'},
+  {y:2025,m:'Apr',t:'U1 vollgepackt',c:'ev-stack'},
+  {y:2025,m:'Mai',t:'U2 vollgepackt',c:'ev-stack'},
+  {y:2025,m:'Sep',t:'U3 vollgepackt + überdacht',c:'ev-stack'},
+  {y:2025,m:'Nov',t:'U4a vollgepackt + überdacht',c:'ev-stack'},
+  {y:2026,m:'Jan',t:'Fällung: Kiefer + Roteiche für U4b',c:'ev-fell'},
+  {y:2026,m:'Apr',t:'U4b vollgepackt (geplant)',c:'ev-stack'},
+  {y:2026,m:'Herbst',t:'→ U1 + U2 erstmals nutzbar (Kamin)',c:'ev-ready'},
+  {y:2027,m:'Frühjahr',t:'⬡ Neue Heizung Einbau',c:'ev-heat'},
+  {y:2027,m:'Sommer',t:'→ U3 feuerreif',c:'ev-ready'},
+  {y:2027,m:'Winter',t:'→ U4a feuerreif',c:'ev-ready'},
+  {y:2028,m:'Frühjahr',t:'→ U4b feuerreif',c:'ev-ready'},
+];
+function renderTL(){
+  const yrs=[...new Set(TL.map(e=>e.y))];
+  document.getElementById('tl-content').innerHTML=yrs.map(y=>`
+    <div class="tl-yr">
+      <div class="tl-yl" style="color:${yc(y)}">${y}</div>
+      <div class="tl-evs">${TL.filter(e=>e.y===y).map(e=>`
+        <div class="tl-ev ${e.c}"><span class="tl-mo">${e.m}</span>${e.t}</div>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// ZWISCHENPLATZ
+// ═══════════════════════════════════════════
+const ZL_COLORS=['#1a1a1a','#7ed99a','#5ecfb0','#3dbfcf','#3a9fd4','#9b6fd4'];
+const ZL_LABELS=['—','Fast leer','Wenig','Mittel','Viel','Voll'];
+
+function setZone(zone,level){
+  if(!D.zwischenplatz) D.zwischenplatz={a:{level:0},b:{level:0}};
+  D.zwischenplatz[zone].level=level;
+  renderZone(zone); autoSave();
+}
+function adjustZone(zone,delta){
+  if(!D.zwischenplatz) D.zwischenplatz={a:{level:0},b:{level:0}};
+  D.zwischenplatz[zone].level=Math.max(0,Math.min(5,D.zwischenplatz[zone].level+delta));
+  renderZone(zone); autoSave();
+}
+function renderZone(zone){
+  if(!D.zwischenplatz) return;
+  const level=D.zwischenplatz[zone].level, color=ZL_COLORS[level];
+  document.querySelectorAll(`#bars-${zone} .bar`).forEach((bar,i)=>{
+    bar.style.background=i<level?color:'var(--bg3)';
+    bar.style.borderColor=i<level?color:'var(--border2)';
+  });
+  document.getElementById(`fill-${zone}`).style.height=`${(level/5)*100}%`;
+  document.getElementById(`fill-${zone}`).style.background=color;
+  document.getElementById(`track-${zone}`).style.width=`${(level/5)*100}%`;
+  document.getElementById(`track-${zone}`).style.background=color;
+  const s=document.getElementById(`status-${zone}`);
+  s.textContent=ZL_LABELS[level]; s.style.color=level===0?'var(--text3)':color;
+}
+
+// ═══════════════════════════════════════════
+// TODO
+// ═══════════════════════════════════════════
+let tasks=[], selectedPrio='A', editingTaskId=null;
+
+function selectPrio(p){
+  selectedPrio=p;
+  document.querySelectorAll('.prio-btn').forEach(btn=>{
+    btn.className='prio-btn'; if(btn.dataset.p===p) btn.classList.add(`sel-${p}`);
+  });
+}
+function addTask(){
+  const input=document.getElementById('todo-input'), text=input.value.trim();
+  if(!text) return;
+  if(editingTaskId){
+    const t=tasks.find(t=>t.id===editingTaskId);
+    if(t){t.text=text;t.prio=selectedPrio;}
+    editingTaskId=null;
+    document.querySelector('.add-btn').textContent='+';
+  } else {
+    tasks.push({id:Date.now(),text,prio:selectedPrio,done:false,created:new Date().toISOString().slice(0,10)});
+  }
+  input.value='';
+  D.todos=tasks; renderTasks(); autoSave();
+}
+function toggleTask(id){const t=tasks.find(t=>t.id===id);if(t){t.done=!t.done;D.todos=tasks;renderTasks();autoSave();}}
+function deleteTask(id){tasks=tasks.filter(t=>t.id!==id);D.todos=tasks;renderTasks();autoSave();}
+function editTask(id){
+  const t=tasks.find(t=>t.id===id); if(!t) return;
+  editingTaskId=id;
+  document.getElementById('todo-input').value=t.text;
+  selectPrio(t.prio);
+  document.querySelector('.add-btn').textContent='✓';
+  document.getElementById('todo-input').focus();
+}
+function renderTasks(){
+  const container=document.getElementById('todo-list');
+  const prioOrder=['A','B','C'], prioLabels={A:'A — Wichtig',B:'B — Normal',C:'C — Irgendwann'};
+  const open=tasks.filter(t=>!t.done), done=tasks.filter(t=>t.done);
+  let html='';
+  if(open.length===0&&done.length===0){html='<div class="todo-empty">Keine Aufgaben — alles erledigt 🪵</div>';}
+  else{
+    prioOrder.forEach(p=>{
+      const group=open.filter(t=>t.prio===p||t.prio===p.toLowerCase());
+      if(!group.length) return;
+      html+=`<div class="todo-section-label">${prioLabels[p]}</div>`;
+      group.forEach(t=>{html+=taskHTML(t);});
+    });
+    if(done.length){html+=`<div class="todo-section-label">Erledigt (${done.length})</div>`;done.forEach(t=>{html+=taskHTML(t);});}
+  }
+  container.innerHTML=html;
+}
+function taskHTML(t){
+  const p=t.prio.toUpperCase();
+  return `<div class="task-item prio-${p}${t.done?' done':''}">
+    <div class="task-check" onclick="toggleTask(${t.id})"></div>
+    <div class="task-body">
+      <div class="task-prio-badge">Prio ${p}</div>
+      <div class="task-text">${t.text}</div>
+    </div>
+    <div class="task-actions">
+      ${!t.done?`<button class="task-edit" onclick="editTask(${t.id})">✎</button>`:''}
+      <button class="task-del" onclick="deleteTask(${t.id})">✕</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// SWIPE
+// ═══════════════════════════════════════════
+let touchStartX=0, touchStartY=0, currentPage=1;
+const PAGE_TITLES={1:'Holzlager',2:'Zwischenplatz',3:'Aufgaben'};
+
+document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-touchStartX, dy=e.changedTouches[0].clientY-touchStartY;
+  if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*0.8) return;
+  if(dx<-50&&currentPage<3) goToPage(currentPage+1);
+  if(dx>50&&currentPage>1) goToPage(currentPage-1);
+},{passive:true});
+
+function goToPage(n){
+  currentPage=n;
+  document.getElementById('swipe-wrap').className=`page-${n}`;
+  [1,2,3].forEach(i=>document.getElementById(`dot-p${i}`).classList.toggle('active',i===n));
+  document.getElementById('page-title').textContent=PAGE_TITLES[n];
+}
+
+let ty0=0;
+document.getElementById('drawer').addEventListener('touchstart',e=>{ty0=e.touches[0].clientY;},{passive:true});
+document.getElementById('drawer').addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-ty0>72)closeDrawer();},{passive:true});
+
+// ═══════════════════════════════════════════
+// GOOGLE DRIVE
+// ═══════════════════════════════════════════
+function setSyncStatus(status){
+  const btn=document.getElementById('sync-btn');
+  btn.className=''; btn.classList.add(status);
+  const icons={synced:'✓',syncing:'↻',error:'✗','':`↻`};
+  btn.textContent=icons[status]||'↻';
+}
+
+function syncAction(){
+  if(!syncEnabled){document.getElementById('auth-ov').classList.add('open');}
+  else{saveToGDrive();}
+}
+
+function startGoogleAuth(){
+  document.getElementById('auth-ov').classList.remove('open');
+  const params=new URLSearchParams({
+    client_id:CLIENT_ID, redirect_uri:window.location.href.split('?')[0].split('#')[0],
+    response_type:'token', scope:SCOPES, prompt:'select_account'
+  });
+  window.location.href=`https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+function skipAuth(){
+  document.getElementById('auth-ov').classList.remove('open');
+  toast('Ohne Sync — Export/Import verfügbar');
+}
+
+function handleAuthCallback(){
+  const hash=window.location.hash.substring(1);
+  const params=new URLSearchParams(hash);
+  if(params.get('access_token')){
+    gToken=params.get('access_token');
+    syncEnabled=true;
+    setSyncStatus('synced');
+    window.history.replaceState(null,'',window.location.pathname);
+    loadFromGDrive();
+  }
+}
+
+async function findOrCreateFile(){
+  // Search in appDataFolder
+  const res=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'`,{
+    headers:{Authorization:`Bearer ${gToken}`}
+  });
+  const data=await res.json();
+  if(data.files&&data.files.length>0){gFileId=data.files[0].id;return;}
+  // Create
+  const meta={name:FILE_NAME,parents:['appDataFolder']};
+  const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
+    method:'POST', headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},
+    body:JSON.stringify(meta)
+  });
+  const cf=await cr.json();
+  gFileId=cf.id;
+}
+
+async function loadFromGDrive(){
+  if(!gToken) return;
+  setSyncStatus('syncing');
+  try{
+    await findOrCreateFile();
+    if(!gFileId){setSyncStatus('error');return;}
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${gFileId}?alt=media`,{
+      headers:{Authorization:`Bearer ${gToken}`}
+    });
+    if(res.ok){
+      const text=await res.text();
+      if(text&&text.length>2){
+        try{
+          const p=JSON.parse(text);
+          if(p.unterstände){
+            D=p;updateMap();updateTiles();renderTL();
+            if(D.zwischenplatz){renderZone('a');renderZone('b');}
+            if(D.todos){tasks=D.todos;renderTasks();}
+            toast('Drive: Daten geladen ✓');
+          }
+        }catch(e){}
+      }
+    }
+    setSyncStatus('synced');
+  }catch(e){setSyncStatus('error');toast('Sync-Fehler');}
+}
+
+async function saveToGDrive(){
+  if(!gToken||!syncEnabled) return;
+  setSyncStatus('syncing');
+  try{
+    if(!gFileId) await findOrCreateFile();
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${gFileId}?uploadType=media`,{
+      method:'PATCH',
+      headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},
+      body:JSON.stringify(D,null,2)
+    });
+    setSyncStatus('synced');
+    toast('Drive: gespeichert ✓');
+  }catch(e){setSyncStatus('error');toast('Speichern fehlgeschlagen');}
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.getElementById('header-date').textContent=new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+handleAuthCallback(); // check if returning from OAuth
+updateMap(); updateTiles(); renderTL();
+renderZone('a'); renderZone('b');
+renderTasks();
+
+// Show auth prompt on first load if not already synced
+if(!syncEnabled && CLIENT_ID !== 'DEINE_CLIENT_ID_HIER'){
+  setTimeout(()=>document.getElementById('auth-ov').classList.add('open'), 800);
+}
+</script>
+</body>
+</html>
