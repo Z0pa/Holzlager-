@@ -68,12 +68,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 /* ── SWIPE CONTAINER ── */
 #swipe-wrap {
   position: fixed; top: 54px; bottom: 0; left: 0;
-  width: 300vw; display: flex;
+  width: 400vw; display: flex;
   transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
 }
 #swipe-wrap.page-1 { transform: translateX(0); }
 #swipe-wrap.page-2 { transform: translateX(-100vw); }
 #swipe-wrap.page-3 { transform: translateX(-200vw); }
+#swipe-wrap.page-4 { transform: translateX(-300vw); }
 
 .page {
   width: 100vw; height: 100%; overflow-y: auto; overflow-x: hidden;
@@ -246,6 +247,113 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 .todo-section-label { font-size: 0.55rem; font-weight: 900; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin: 14px 0 6px; }
 .todo-empty { text-align: center; color: var(--text3); font-size: 0.78rem; font-weight: 700; padding: 32px 0; }
 
+/* ── PAGE 4: ZEITERFASSUNG ── */
+.timer-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 16px; margin-bottom: 12px;
+  text-align: center;
+}
+.timer-display {
+  font-size: 3.8rem; font-weight: 900; letter-spacing: 2px;
+  color: var(--accent); line-height: 1; margin: 10px 0;
+  font-variant-numeric: tabular-nums;
+}
+.timer-display.running { color: #6dd9a0; }
+.timer-date { font-size: 0.62rem; font-weight: 700; color: var(--text3); margin-bottom: 14px; }
+.timer-btn {
+  width: 100%; padding: 14px; border-radius: 12px; border: none;
+  font-family: 'Nunito',sans-serif; font-weight: 900; font-size: 1rem;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+  transition: opacity 0.15s;
+}
+.timer-btn:active { opacity: 0.8; }
+.timer-btn.start { background: #6dd9a0; color: #000; }
+.timer-btn.stop  { background: #f07a5a; color: #000; }
+.timer-nfc-hint {
+  font-size: 0.6rem; font-weight: 700; color: var(--text3);
+  margin-top: 8px; text-align: center;
+}
+
+.log-section { margin-bottom: 12px; }
+.log-entry {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 13px; margin-bottom: 7px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.log-entry-left { flex: 1; min-width: 0; }
+.log-act {
+  font-size: 0.62rem; font-weight: 900; text-transform: uppercase;
+  letter-spacing: 0.8px; margin-bottom: 3px;
+}
+.log-meta { font-size: 0.72rem; font-weight: 700; color: var(--text2); }
+.log-dur { font-size: 1.1rem; font-weight: 900; color: var(--accent); flex-shrink: 0; }
+.log-del { background: none; border: none; color: var(--text3); font-size: 0.9rem; cursor: pointer; flex-shrink: 0; padding: 0 2px; }
+.log-del:active { color: #e07a7a; }
+
+.stats-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;
+}
+.stat-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 8px; text-align: center;
+}
+.stat-num { font-size: 1.2rem; font-weight: 900; color: var(--accent); }
+.stat-lbl { font-size: 0.5rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+.fuel-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 12px;
+}
+.fuel-add-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.fuel-input {
+  flex: 1; background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'Nunito',sans-serif; font-weight: 700;
+  font-size: 0.85rem; padding: 8px 10px; border-radius: 8px; outline: none;
+}
+.fuel-input:focus { border-color: var(--accent); }
+.fuel-type-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border2); flex-shrink: 0; }
+.fuel-type-btn {
+  padding: 8px 10px; background: var(--bg3); border: none;
+  font-family: 'Nunito',sans-serif; font-weight: 800; font-size: 0.65rem;
+  color: var(--text3); cursor: pointer;
+}
+.fuel-type-btn.active { background: var(--bg2); color: var(--accent); border-bottom: 2px solid var(--accent); }
+.fuel-entry {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.75rem;
+}
+.fuel-entry:last-child { border-bottom: none; }
+
+/* Activity picker overlay */
+#act-ov {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+  z-index: 130; display: none; align-items: flex-end; justify-content: center;
+}
+#act-ov.open { display: flex; }
+.act-sheet {
+  background: #0a0a0a; border-top: 1px solid var(--border2);
+  border-radius: 18px 18px 0 0; width: 100%; padding: 16px 16px 40px;
+}
+.act-sheet h3 { font-size: 0.85rem; font-weight: 900; text-align: center; margin-bottom: 16px; color: var(--text2); }
+.act-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.act-btn {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px;
+  padding: 16px 10px; font-family: 'Nunito',sans-serif; font-weight: 800;
+  font-size: 0.85rem; color: var(--text); cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.act-btn:active { border-color: var(--accent); background: #1a1500; }
+.act-icon { font-size: 1.6rem; }
+
+/* CSV export btn */
+.csv-btn {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text2); font-family: 'Nunito',sans-serif; font-weight: 800;
+  font-size: 0.65rem; padding: 10px; border-radius: 8px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;
+}
+.csv-btn:active { border-color: var(--accent); color: var(--accent); }
+
 /* ── GOOGLE AUTH OVERLAY ── */
 #auth-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; display: none; align-items: center; justify-content: center; padding: 22px; }
 #auth-ov.open { display: flex; }
@@ -273,6 +381,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
       <div class="pdot active" id="dot-p1"></div>
       <div class="pdot" id="dot-p2"></div>
       <div class="pdot" id="dot-p3"></div>
+      <div class="pdot" id="dot-p4"></div>
     </div>
     <div id="sync-btn" onclick="syncAction()" title="Google Drive Sync">↻</div>
     <div id="header-date"></div>
@@ -479,7 +588,73 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     <div id="todo-list"></div>
   </div><!-- /page3 -->
 
+  <!-- ══ PAGE 4: ZEITERFASSUNG ══ -->
+  <div class="page" id="page4">
+
+    <!-- Timer -->
+    <div class="timer-card">
+      <div class="timer-date" id="timer-date"></div>
+      <div class="timer-display" id="timer-display">00:00:00</div>
+      <button class="timer-btn start" id="timer-btn" onclick="toggleTimer()">▶ Start</button>
+      <div class="timer-nfc-hint">💡 NFC-Chip an der Werkzeugkiste = Start/Stop</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num" id="stat-h">0h</div>
+        <div class="stat-lbl">Gesamt</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-sessions">0</div>
+        <div class="stat-lbl">Einsätze</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="stat-cost">0€</div>
+        <div class="stat-lbl">Kosten</div>
+      </div>
+    </div>
+
+    <!-- Arbeitsprotokolle -->
+    <div class="log-section">
+      <div class="sec-head">Protokoll</div>
+      <div id="work-log"></div>
+      <button class="csv-btn" onclick="exportCSV()">↓ CSV Export</button>
+    </div>
+
+    <!-- Sprit & Öl -->
+    <div class="fuel-card">
+      <div class="sec-head">Sprit & Öl</div>
+      <div class="fuel-type-toggle">
+        <button class="fuel-type-btn active" id="ft-sprit" onclick="setFuelType('sprit')">⛽ Sprit</button>
+        <button class="fuel-type-btn" id="ft-oel" onclick="setFuelType('oel')">🛢 Kettenöl</button>
+      </div>
+      <div class="fuel-add-row">
+        <input class="fuel-input" id="fuel-liter" type="number" placeholder="Liter" step="0.1" min="0">
+        <input class="fuel-input" id="fuel-preis" type="number" placeholder="€ gesamt" step="0.01" min="0">
+        <button class="add-btn" style="flex-shrink:0" onclick="addFuel()">+</button>
+      </div>
+      <div id="fuel-log" style="margin-top:10px"></div>
+    </div>
+
+  </div><!-- /page4 -->
+
 </div><!-- /swipe-wrap -->
+
+<!-- Activity picker -->
+<div id="act-ov">
+  <div class="act-sheet">
+    <h3>Was hast du gemacht?</h3>
+    <div class="act-grid">
+      <button class="act-btn" onclick="saveSession('Fällen')"><span class="act-icon">🌲</span>Fällen</button>
+      <button class="act-btn" onclick="saveSession('Sägen')"><span class="act-icon">⚙️</span>Sägen</button>
+      <button class="act-btn" onclick="saveSession('Spalten')"><span class="act-icon">🪓</span>Spalten</button>
+      <button class="act-btn" onclick="saveSession('Einräumen')"><span class="act-icon">🏠</span>Einräumen</button>
+      <button class="act-btn" onclick="saveSession('Transport')"><span class="act-icon">🚜</span>Transport</button>
+      <button class="act-btn" onclick="saveSession('Sonstiges')"><span class="act-icon">🔧</span>Sonstiges</button>
+    </div>
+  </div>
+</div>
 
 <!-- Drawer -->
 <div id="dw-overlay" onclick="closeDrawer()"></div>
@@ -773,6 +948,10 @@ function importJSON(e){
       D=p; updateMap(); updateTiles(); renderTL();
       if(D.zwischenplatz){renderZone('a');renderZone('b');}
       if(D.todos){tasks=D.todos;renderTasks();}
+      if(D.worklog||D.fuellog){
+        D.worklog=D.worklog||[]; D.fuellog=D.fuellog||[];
+        renderWorkLog(); renderFuelLog(); updateStats();
+      }
       if(curUS) renderDW(D.unterstände[curUS],curUS);
       toast('Daten geladen ✓');
     }catch(err){alert('Fehler: '+err.message);}
@@ -909,20 +1088,20 @@ function taskHTML(t){
 // SWIPE
 // ═══════════════════════════════════════════
 let touchStartX=0, touchStartY=0, currentPage=1;
-const PAGE_TITLES={1:'Holzlager',2:'Zwischenplatz',3:'Aufgaben'};
+const PAGE_TITLES={1:'Holzlager',2:'Zwischenplatz',3:'Aufgaben',4:'Zeiterfassung'};
 
 document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;},{passive:true});
 document.addEventListener('touchend',e=>{
   const dx=e.changedTouches[0].clientX-touchStartX, dy=e.changedTouches[0].clientY-touchStartY;
   if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*0.8) return;
-  if(dx<-50&&currentPage<3) goToPage(currentPage+1);
+  if(dx<-50&&currentPage<4) goToPage(currentPage+1);
   if(dx>50&&currentPage>1) goToPage(currentPage-1);
 },{passive:true});
 
 function goToPage(n){
   currentPage=n;
   document.getElementById('swipe-wrap').className=`page-${n}`;
-  [1,2,3].forEach(i=>document.getElementById(`dot-p${i}`).classList.toggle('active',i===n));
+  [1,2,3,4].forEach(i=>document.getElementById(`dot-p${i}`).classList.toggle('active',i===n));
   document.getElementById('page-title').textContent=PAGE_TITLES[n];
 }
 
@@ -1031,15 +1210,190 @@ async function saveToGDrive(){
 }
 
 // ═══════════════════════════════════════════
+// ZEITERFASSUNG
+// ═══════════════════════════════════════════
+let timerRunning=false, timerStart=null, timerInterval=null;
+let selectedFuelType='sprit';
+if(!D.worklog) D.worklog=[];
+if(!D.fuellog) D.fuellog=[];
+
+function toggleTimer(){
+  if(!timerRunning) startTimer(); else stopTimer();
+}
+
+function startTimer(){
+  timerRunning=true; timerStart=Date.now();
+  const btn=document.getElementById('timer-btn');
+  btn.textContent='⏹ Stop'; btn.className='timer-btn stop';
+  document.getElementById('timer-display').classList.add('running');
+  timerInterval=setInterval(updateTimerDisplay,1000);
+  updateTimerDisplay();
+  toast('Timer gestartet');
+}
+
+function stopTimer(){
+  clearInterval(timerInterval); timerRunning=false;
+  document.getElementById('timer-btn').textContent='▶ Start';
+  document.getElementById('timer-btn').className='timer-btn start';
+  document.getElementById('timer-display').classList.remove('running');
+  // Show activity picker
+  document.getElementById('act-ov').classList.add('open');
+}
+
+function saveSession(activity){
+  document.getElementById('act-ov').classList.remove('open');
+  const dur=Math.round((Date.now()-timerStart)/1000);
+  const entry={
+    id:Date.now(), activity,
+    date:new Date().toISOString().slice(0,10),
+    duration:dur // seconds
+  };
+  if(!D.worklog) D.worklog=[];
+  D.worklog.unshift(entry);
+  document.getElementById('timer-display').textContent='00:00:00';
+  timerStart=null;
+  renderWorkLog(); updateStats(); autoSave();
+  toast(`${activity} — ${fmtDur(dur)} gespeichert`);
+}
+
+function updateTimerDisplay(){
+  if(!timerStart) return;
+  const s=Math.round((Date.now()-timerStart)/1000);
+  document.getElementById('timer-display').textContent=fmtDur(s);
+}
+
+function fmtDur(s){
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function fmtDurShort(s){
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60);
+  if(h>0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+const ACT_COLORS={Fällen:'#7eb8f7',Sägen:'#f5c842',Spalten:'#f07a5a',Einräumen:'#6dd9a0',Transport:'#9b6fd4',Sonstiges:'#888'};
+
+function renderWorkLog(){
+  if(!D.worklog) return;
+  const container=document.getElementById('work-log');
+  if(!D.worklog.length){container.innerHTML='<div class="todo-empty">Noch keine Einträge</div>';return;}
+  container.innerHTML=D.worklog.slice(0,20).map(e=>`
+    <div class="log-entry">
+      <div class="log-entry-left">
+        <div class="log-act" style="color:${ACT_COLORS[e.activity]||'#888'}">${e.activity}</div>
+        <div class="log-meta">${e.date}</div>
+      </div>
+      <div class="log-dur">${fmtDurShort(e.duration)}</div>
+      <button class="log-del" onclick="deleteLog(${e.id})">✕</button>
+    </div>`).join('');
+}
+
+function deleteLog(id){
+  D.worklog=D.worklog.filter(e=>e.id!==id);
+  renderWorkLog(); updateStats(); autoSave();
+}
+
+function updateStats(){
+  if(!D.worklog) return;
+  const totalS=D.worklog.reduce((a,e)=>a+e.duration,0);
+  const totalH=(totalS/3600).toFixed(1);
+  document.getElementById('stat-h').textContent=`${totalH}h`;
+  document.getElementById('stat-sessions').textContent=D.worklog.length;
+  // Total fuel cost
+  const totalCost=(D.fuellog||[]).reduce((a,e)=>a+(e.preis||0),0);
+  document.getElementById('stat-cost').textContent=`${totalCost.toFixed(0)}€`;
+}
+
+// ── FUEL ──
+function setFuelType(t){
+  selectedFuelType=t;
+  document.getElementById('ft-sprit').classList.toggle('active',t==='sprit');
+  document.getElementById('ft-oel').classList.toggle('active',t==='oel');
+}
+
+function addFuel(){
+  const liter=parseFloat(document.getElementById('fuel-liter').value);
+  const preis=parseFloat(document.getElementById('fuel-preis').value);
+  if(!liter||!preis){toast('Liter und Preis eingeben');return;}
+  if(!D.fuellog) D.fuellog=[];
+  D.fuellog.unshift({id:Date.now(), type:selectedFuelType, liter, preis, date:new Date().toISOString().slice(0,10)});
+  document.getElementById('fuel-liter').value='';
+  document.getElementById('fuel-preis').value='';
+  renderFuelLog(); updateStats(); autoSave();
+  toast('Eintrag gespeichert');
+}
+
+function renderFuelLog(){
+  if(!D.fuellog) return;
+  const container=document.getElementById('fuel-log');
+  if(!D.fuellog.length){container.innerHTML='';return;}
+  container.innerHTML=D.fuellog.slice(0,10).map(e=>`
+    <div class="fuel-entry">
+      <span style="color:var(--text2)">${e.date}</span>
+      <span style="font-weight:800">${e.type==='sprit'?'⛽':'🛢'} ${e.liter}L</span>
+      <span style="color:var(--accent);font-weight:900">${e.preis.toFixed(2)}€</span>
+      <button class="log-del" onclick="deleteFuel(${e.id})">✕</button>
+    </div>`).join('');
+}
+
+function deleteFuel(id){
+  D.fuellog=D.fuellog.filter(e=>e.id!==id);
+  renderFuelLog(); updateStats(); autoSave();
+}
+
+// ── CSV EXPORT ──
+function exportCSV(){
+  const rows=[['Datum','Aktivität','Dauer (Min)','Dauer (h)']];
+  (D.worklog||[]).forEach(e=>{
+    rows.push([e.date, e.activity, Math.round(e.duration/60), (e.duration/3600).toFixed(2)]);
+  });
+  rows.push([]);
+  rows.push(['Datum','Typ','Liter','Preis (€)']);
+  (D.fuellog||[]).forEach(e=>{
+    rows.push([e.date, e.type==='sprit'?'Sprit':'Kettenöl', e.liter, e.preis.toFixed(2)]);
+  });
+  const csv=rows.map(r=>r.join(';')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=`holzlager_arbeit_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── NFC URL PARAM ──
+function checkNFCAction(){
+  const params=new URLSearchParams(window.location.search);
+  const action=params.get('action');
+  if(action==='timer'){
+    goToPage(4);
+    setTimeout(()=>toggleTimer(), 400);
+    window.history.replaceState(null,'',window.location.pathname);
+  }
+  if(action==='fuel'){
+    goToPage(4);
+    setTimeout(()=>{
+      document.getElementById('fuel-liter').focus();
+      document.getElementById('fuel-liter').scrollIntoView({behavior:'smooth'});
+    }, 400);
+    window.history.replaceState(null,'',window.location.pathname);
+  }
+}
+
+// ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
 document.getElementById('header-date').textContent=new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
-handleAuthCallback(); // check if returning from OAuth
+document.getElementById('timer-date').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long'});
+handleAuthCallback();
+checkNFCAction();
 updateMap(); updateTiles(); renderTL();
 renderZone('a'); renderZone('b');
 renderTasks();
+if(!D.worklog) D.worklog=[];
+if(!D.fuellog) D.fuellog=[];
+renderWorkLog(); renderFuelLog(); updateStats();
 
-// Show auth prompt on first load if not already synced
 if(!syncEnabled && CLIENT_ID !== 'DEINE_CLIENT_ID_HIER'){
   setTimeout(()=>document.getElementById('auth-ov').classList.add('open'), 800);
 }
